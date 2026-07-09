@@ -54,7 +54,7 @@ This project was built as part of the **Stellar Developer Belt Program – Yello
 
 > **Live Application**
 
-https://your-vercel-url.vercel.app
+[Demo](https://stellar-fundd.netlify.app/)
 
 ---
 
