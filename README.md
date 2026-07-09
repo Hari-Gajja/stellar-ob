@@ -3,7 +3,7 @@
 > A decentralized crowdfunding platform powered by **Soroban Smart Contracts** on the **Stellar Network**.
 
 <p align="center">
-  <img src="./screenshots/hero.png" alt="StellarFund Banner" width="100%" />
+  <img src="./screenshots/campaign-donation.png" alt="StellarFund Campaign" width="100%" />
 </p>
 
 <p align="center">
@@ -80,33 +80,27 @@ https://stellar.expert/explorer/testnet/contract/YOUR_CONTRACT_ID
 
 # 📸 Screenshots
 
-## Home
+## Home / Campaign Dashboard
 
-![Home](./screenshots/home.png)
+![Campaign Dashboard](./screenshots/campaign-donation.png)
 
 ---
 
 ## Wallet Selection
 
-![Wallet](./screenshots/wallet-selection.png)
+![Wallet Selection](./screenshots/wallet.png)
 
 ---
 
-## Campaign
+## Wallet Connection Request
 
-![Campaign](./screenshots/campaign.png)
-
----
-
-## Donation
-
-![Donation](./screenshots/donation.png)
+![Wallet Connection Request](./screenshots/wallet-req.png)
 
 ---
 
-## Transaction Success
+## Successful Transaction
 
-![Transaction](./screenshots/transaction-success.png)
+![Transaction Success](./screenshots/succesful-transaction.png)
 
 ---
 
@@ -133,30 +127,30 @@ https://stellar.expert/explorer/testnet/contract/YOUR_CONTRACT_ID
 # 🏗 Architecture
 
 ```
-                        User
-                          │
-                          ▼
-                  React Frontend
-                 (Vercel / Netlify)
-                          │
-                          ▼
-                StellarWalletsKit
-                          │
-          ┌───────────────┴───────────────┐
-          ▼                               ▼
-     Freighter                       xBull Wallet
-                          │
-                          ▼
-                 Sign Transaction
-                          │
-                          ▼
-                 Stellar RPC Server
-                          │
-                          ▼
-              Soroban Smart Contract
-                          │
-                          ▼
-              Stellar Testnet Blockchain
+                         User
+                           │
+                           ▼
+                   React Frontend
+                  (Vercel / Netlify)
+                           │
+                           ▼
+                 StellarWalletsKit
+                           │
+           ┌───────────────┴───────────────┐
+           ▼                               ▼
+      Freighter                       xBull Wallet
+                           │
+                           ▼
+                  Sign Transaction
+                           │
+                           ▼
+                  Stellar RPC Server
+                           │
+                           ▼
+               Soroban Smart Contract
+                           │
+                           ▼
+               Stellar Testnet Blockchain
 ```
 
 ---
