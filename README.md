@@ -74,7 +74,7 @@ YOUR_CONTRACT_ID
 
 View Contract
 
-https://stellar.expert/explorer/testnet/contract/YOUR_CONTRACT_ID
+https://stellar.expert/explorer/testnet/contract/CDWWUENTA4JTHXGHHORU6HZ2KDNJFKC6WP6O5EN2WF2MLWMMCES7BYWZ
 
 ---
 
