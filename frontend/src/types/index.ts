@@ -1,38 +1,41 @@
 export interface CampaignData {
+  id: number;
+  owner: string;
   name: string;
   description: string;
   funding_goal: bigint;
   total_raised: bigint;
   contributor_count: number;
-  owner: string;
   created_at: bigint;
-  goal_reached: boolean;
+  deadline: bigint;
+  active: boolean;
 }
 
 export interface DonationRecord {
+  campaign_id: number;
   donor: string;
   amount: bigint;
   timestamp: bigint;
-  transaction_id: string;
 }
 
-export interface CampaignInitializedEvent {
+export interface CampaignCreatedEvent {
   owner: string;
+  campaign_id: number;
   name: string;
   funding_goal: bigint;
+  deadline: bigint;
   timestamp: bigint;
 }
 
 export interface DonationReceivedEvent {
+  campaign_id: number;
   donor: string;
   amount: bigint;
   timestamp: bigint;
-  transaction_id: string;
 }
 
-export interface CampaignGoalReachedEvent {
-  total_raised: bigint;
-  funding_goal: bigint;
+export interface CampaignClosedEvent {
+  campaign_id: number;
   timestamp: bigint;
 }
 
@@ -41,7 +44,7 @@ export interface ContractError {
   message: string;
 }
 
-export type TransactionStatus = 
+export type TransactionStatus =
   | 'idle'
   | 'signing'
   | 'submitting'
@@ -90,3 +93,14 @@ export interface DonationProgress {
   contributors: number;
   daysLeft: number;
 }
+
+export interface CreateCampaignForm {
+  title: string;
+  description: string;
+  goalAmount: string;
+  deadline: string;
+  category?: string;
+}
+
+export type SortOption = 'newest' | 'most_funded' | 'ending_soon';
+export type FilterOption = 'all' | 'active' | 'completed' | 'closed';

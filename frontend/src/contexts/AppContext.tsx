@@ -1,32 +1,21 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
-import { 
-  getAvailableWallets, 
-  connectWallet, 
-  getStoredAddress, 
-  disconnectWallet,
-  signTransaction,
-  STELLAR_NETWORK_PASSPHRASE,
-  STELLAR_RPC_URL
-} from "../services/wallet";
-import { 
-  createReadOnlyClient, 
-  createSigningClient,
+import { connectWallet, getStoredAddress, disconnectWallet, signTransaction } from "../services/wallet";
+import {
   getCampaign,
   getRecentDonations,
-  getContributorCount,
+  getAllCampaigns,
   donate as contractDonate,
-  generateTransactionId,
-  xlmToStroops,
-  CONTRACT_ID
+  CONTRACT_ID,
 } from "../services/contract";
-import type { 
-  WalletInfo, 
-  TransactionState, 
-  ToastMessage, 
-  CampaignData, 
+import type {
+  WalletInfo,
+  TransactionState,
+  ToastMessage,
+  CampaignData,
   DonationRecord,
-  DonationProgress 
+  DonationProgress,
 } from "../types";
+import { stroopsToXlm } from "../utils/format";
 
 interface WalletContextType {
   address: string | null;
@@ -46,20 +35,14 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [connecting, setConnecting] = useState(false);
   const [availableWallets, setAvailableWallets] = useState<WalletInfo[]>([]);
 
-  const loadWallets = useCallback(async () => {
-    const wallets = await getAvailableWallets();
-    setAvailableWallets(wallets);
-  }, []);
-
   const refreshAddress = useCallback(async () => {
     const addr = await getStoredAddress();
     if (addr) setAddress(addr);
   }, []);
 
   useEffect(() => {
-    loadWallets();
     refreshAddress();
-  }, [loadWallets, refreshAddress]);
+  }, [refreshAddress]);
 
   const connect = async () => {
     if (connecting) return;
@@ -104,18 +87,21 @@ export function useWallet() {
 }
 
 interface CampaignContextType {
+  campaigns: CampaignData[];
   campaign: CampaignData | null;
   donations: DonationRecord[];
   progress: DonationProgress | null;
   loading: boolean;
   error: string | null;
   refresh: () => Promise<void>;
+  refreshCampaign: (id: number) => Promise<void>;
   lastUpdated: number | null;
 }
 
 const CampaignContext = createContext<CampaignContextType | undefined>(undefined);
 
 export function CampaignProvider({ children }: { children: ReactNode }) {
+  const [campaigns, setCampaigns] = useState<CampaignData[]>([]);
   const [campaign, setCampaign] = useState<CampaignData | null>(null);
   const [donations, setDonations] = useState<DonationRecord[]>([]);
   const [progress, setProgress] = useState<DonationProgress | null>(null);
@@ -123,42 +109,45 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<number | null>(null);
 
-  const readOnlyClient = createReadOnlyClient(CONTRACT_ID);
-
   const calculateProgress = useCallback((campaignData: CampaignData): DonationProgress => {
-    const goalXlm = Number(campaignData.funding_goal) / 10_000_000;
-    const raisedXlm = Number(campaignData.total_raised) / 10_000_000;
-    const percentage = campaignData.funding_goal === 0n ? 0 : Math.min(100, Math.round((Number(campaignData.total_raised) / Number(campaignData.funding_goal)) * 100));
-    
-    const createdTime = Number(campaignData.created_at) * 1000;
-    const endTime = createdTime + 30 * 24 * 60 * 60 * 1000;
+    const goalXlm = stroopsToXlm(campaignData.funding_goal);
+    const raisedXlm = stroopsToXlm(campaignData.total_raised);
+    const percentage = campaignData.funding_goal === 0n
+      ? 0
+      : Math.min(100, Math.round((Number(campaignData.total_raised) / Number(campaignData.funding_goal)) * 100));
+    const endTime = Number(campaignData.deadline) * 1000;
     const timeLeft = endTime - Date.now();
     const daysLeft = Math.max(0, Math.ceil(timeLeft / (24 * 60 * 60 * 1000)));
-
-    return {
-      percentage,
-      goalXlm,
-      raisedXlm,
-      contributors: Number(campaignData.contributor_count),
-      daysLeft,
-    };
+    return { percentage, goalXlm, raisedXlm, contributors: campaignData.contributor_count, daysLeft };
   }, []);
 
-  const fetchData = useCallback(async () => {
+  const fetchCampaigns = useCallback(async () => {
     try {
       setError(null);
-      const [campaignData, donationsData, contributorCount] = await Promise.all([
-        getCampaign(readOnlyClient),
-        getRecentDonations(readOnlyClient, 20),
-        getContributorCount(readOnlyClient),
-      ]);
+      const data = await getAllCampaigns();
+      setCampaigns(data);
+      setLastUpdated(Date.now());
+    } catch (err) {
+      console.error("Error fetching campaigns:", err);
+      setError("Failed to load campaigns");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
+  const fetchCampaign = useCallback(async (id: number) => {
+    try {
+      setError(null);
+      const [campaignData, donationsData] = await Promise.all([
+        getCampaign(id),
+        getRecentDonations(id, 20),
+      ]);
       setCampaign(campaignData);
       setDonations(donationsData.sort((a, b) => Number(b.timestamp - a.timestamp)));
       setProgress(calculateProgress(campaignData));
       setLastUpdated(Date.now());
     } catch (err) {
-      console.error("Error fetching campaign data:", err);
+      console.error("Error fetching campaign:", err);
       setError("Failed to load campaign data");
     } finally {
       setLoading(false);
@@ -166,20 +155,20 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
   }, [calculateProgress]);
 
   useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 15000);
-    return () => clearInterval(interval);
-  }, [fetchData]);
+    fetchCampaigns();
+  }, [fetchCampaigns]);
 
   return (
     <CampaignContext.Provider
       value={{
+        campaigns,
         campaign,
         donations,
         progress,
         loading,
         error,
-        refresh: fetchData,
+        refresh: fetchCampaigns,
+        refreshCampaign: fetchCampaign,
         lastUpdated,
       }}
     >
@@ -198,7 +187,7 @@ export function useCampaign() {
 
 interface TransactionContextType {
   state: TransactionState;
-  donate: (client: ReturnType<typeof createSigningClient>, address: string, amount: bigint, txId: string) => Promise<string>;
+  donate: (publicKey: string, campaignId: number, amount: bigint) => Promise<string>;
   reset: () => void;
 }
 
@@ -211,12 +200,14 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
     setState({ status: "idle" });
   }, []);
 
-  const donate = async (client: ReturnType<typeof createSigningClient>, address: string, amount: bigint, txId: string) => {
+  const donate = async (publicKey: string, campaignId: number, amount: bigint) => {
     setState({ status: "signing" });
     try {
-      const hash = await contractDonate(client, address, amount, txId);
+      const tx = await contractDonate(publicKey, campaignId, amount);
       setState({ status: "submitting" });
-      setState({ status: "pending", hash, timestamp: Date.now() });
+      const sent = await tx.signAndSend();
+      const hash = typeof sent === "string" ? sent : sent.hash || "";
+      setState({ status: "confirmed", hash, timestamp: Date.now() });
       return hash;
     } catch (err) {
       const message = err instanceof Error ? err.message : "Transaction failed";
@@ -240,6 +231,16 @@ export function useTransaction() {
   return context;
 }
 
+const ToastContext = createContext<{
+  toasts: ToastMessage[];
+  showToast: (toast: Omit<ToastMessage, "id">) => void;
+  dismissToast: (id: string) => void;
+  success: (title: string, message?: string) => void;
+  error: (title: string, message?: string) => void;
+  warning: (title: string, message?: string) => void;
+  info: (title: string, message?: string) => void;
+} | undefined>(undefined);
+
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
@@ -247,7 +248,6 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     const id = Math.random().toString(36).substring(2, 9);
     const newToast = { ...toast, id, duration: toast.duration ?? 5000 };
     setToasts(prev => [...prev, newToast]);
-    
     if (newToast.duration && newToast.duration > 0) {
       setTimeout(() => {
         setToasts(prev => prev.filter(t => t.id !== id));
@@ -275,11 +275,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     showToast({ type: "info", title, message });
   }, [showToast]);
 
+  const value = { toasts, showToast, dismissToast, success, error, warning, info };
+
   return (
-    <>
+    <ToastContext.Provider value={value}>
       {children}
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
-    </>
+    </ToastContext.Provider>
   );
 }
 
@@ -290,16 +292,6 @@ export function useToast() {
   }
   return context;
 }
-
-const ToastContext = createContext<{
-  toasts: ToastMessage[];
-  showToast: (toast: Omit<ToastMessage, "id">) => void;
-  dismissToast: (id: string) => void;
-  success: (title: string, message?: string) => void;
-  error: (title: string, message?: string) => void;
-  warning: (title: string, message?: string) => void;
-  info: (title: string, message?: string) => void;
-} | undefined>(undefined);
 
 function ToastContainer({ toasts, onDismiss }: { toasts: ToastMessage[]; onDismiss: (id: string) => void }) {
   return (

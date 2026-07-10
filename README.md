@@ -7,15 +7,13 @@
 </p>
 
 <p align="center">
-
-![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript)
-![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4.x-38BDF8?logo=tailwindcss)
-![Soroban](https://img.shields.io/badge/Soroban-Smart%20Contracts-000000)
-![Rust](https://img.shields.io/badge/Rust-Latest-orange?logo=rust)
-![Stellar](https://img.shields.io/badge/Stellar-Testnet-7D00FF)
-![License](https://img.shields.io/badge/License-MIT-success)
-
+  <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react" alt="React" />
+  <img src="https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/TailwindCSS-3.x-38BDF8?logo=tailwindcss" alt="TailwindCSS" />
+  <img src="https://img.shields.io/badge/Soroban-Smart%20Contracts-000000" alt="Soroban" />
+  <img src="https://img.shields.io/badge/Rust-Latest-orange?logo=rust" alt="Rust" />
+  <img src="https://img.shields.io/badge/Stellar-Testnet-7D00FF" alt="Stellar" />
+  <img src="https://img.shields.io/badge/License-MIT-success" alt="License" />
 </p>
 
 ---
@@ -33,7 +31,7 @@ This project was built as part of the **Stellar Developer Belt Program – Yello
 # ✨ Features
 
 - 🔐 Multi-wallet authentication with StellarWalletsKit
-- 🌍 Supports Freighter, xBull, and compatible Stellar wallets
+- 🌍 Supports Freighter, xBull, Albedo, Rabet, Lobstr
 - 📄 Soroban Smart Contract deployed on Stellar Testnet
 - 💸 Secure XLM crowdfunding donations
 - 📊 Live fundraising progress
@@ -66,23 +64,23 @@ This project was built as part of the **Stellar Developer Belt Program – Yello
 
 ## 📜 Smart Contract
 
-Contract ID
+**Contract ID**
 
 ```text
 YOUR_CONTRACT_ID
 ```
 
-View Contract
+**View Contract**
 
-https://stellar.expert/explorer/testnet/contract/CDWWUENTA4JTHXGHHORU6HZ2KDNJFKC6WP6O5EN2WF2MLWMMCES7BYWZ
+https://stellar.expert/explorer/testnet/contract/CCYJOPGDQSZ2XVR4QCP67RAIFZRVDNXVYT2LRO2U4AJ2XL5D66M3PDYX
 
 ---
 
 # 📸 Screenshots
 
-## Home / Campaign Dashboard
+## Campaign & Donation View
 
-![Campaign Dashboard](./screenshots/campaign-donation.png)
+![Campaign Donation](./screenshots/campaign-donation.png)
 
 ---
 
@@ -94,7 +92,7 @@ https://stellar.expert/explorer/testnet/contract/CDWWUENTA4JTHXGHHORU6HZ2KDNJFKC
 
 ## Wallet Connection Request
 
-![Wallet Connection Request](./screenshots/wallet-req.png)
+![Wallet Request](./screenshots/wallet-req.png)
 
 ---
 
@@ -215,19 +213,19 @@ The crowdfunding contract is written using the **Soroban Rust SDK**.
 ## Main Functions
 
 | Function | Description |
-|-----------|-------------|
-| initialize_campaign() | Creates a crowdfunding campaign |
-| donate() | Donate XLM |
-| get_campaign() | Returns campaign details |
-| get_total() | Returns total funds raised |
-| get_contributors() | Returns contributor count |
-| get_recent_donations() | Returns recent donation history |
+|----------|-------------|
+| `initialize_campaign()` | Creates a crowdfunding campaign |
+| `donate()` | Donate XLM |
+| `get_campaign()` | Returns campaign details |
+| `get_total()` | Returns total funds raised |
+| `get_contributors()` | Returns contributor count |
+| `get_recent_donations()` | Returns recent donation history |
 
 ---
 
 ## Contract Storage
 
-Stores
+Stores:
 
 - Campaign Name
 - Description
@@ -246,7 +244,7 @@ The contract emits events for blockchain synchronization.
 
 ### DonationReceived
 
-Contains
+Contains:
 
 - Donor Address
 - Donation Amount
@@ -257,13 +255,15 @@ Contains
 
 # 💼 Wallet Support
 
-Supported Wallets
+**Supported Wallets**
 
 - Freighter
 - xBull
 - Albedo (if installed)
+- Rabet
+- Lobstr
 
-Wallet Features
+**Wallet Features**
 
 - Connect
 - Disconnect
@@ -277,29 +277,29 @@ Wallet Features
 
 ```
 User Connects Wallet
-        │
-        ▼
+         │
+         ▼
 Reads Campaign Data
-        │
-        ▼
+         │
+         ▼
 Enter Amount
-        │
-        ▼
+         │
+         ▼
 Wallet Signature
-        │
-        ▼
+         │
+         ▼
 Transaction Submitted
-        │
-        ▼
+         │
+         ▼
 Pending Confirmation
-        │
-        ▼
+         │
+         ▼
 Contract Executes
-        │
-        ▼
+         │
+         ▼
 Donation Event Emitted
-        │
-        ▼
+         │
+         ▼
 Frontend Refreshes
 ```
 
@@ -333,7 +333,7 @@ or
 Failed
 ```
 
-Displayed Information
+**Displayed Information**
 
 - Transaction Hash
 - Explorer Link
@@ -344,27 +344,21 @@ Displayed Information
 
 # ⚠️ Error Handling
 
-Implemented
+**Implemented**
 
-✅ Wallet Not Installed
-
-✅ Wallet Rejected
-
-✅ Insufficient Balance
-
-✅ Invalid Donation Amount
-
-✅ RPC Connection Failure
-
-✅ Contract Execution Failure
-
-✅ Unknown Errors
+✅ Wallet Not Installed  
+✅ Wallet Rejected  
+✅ Insufficient Balance  
+✅ Invalid Donation Amount  
+✅ RPC Connection Failure  
+✅ Contract Execution Failure  
+✅ Unknown Errors  
 
 ---
 
 # 🛠 Installation
 
-Clone repository
+**Clone repository**
 
 ```bash
 git clone https://github.com/YOUR_USERNAME/stellar-fund.git
@@ -372,7 +366,7 @@ git clone https://github.com/YOUR_USERNAME/stellar-fund.git
 cd stellar-fund
 ```
 
-Install frontend
+**Install frontend**
 
 ```bash
 cd frontend
@@ -380,7 +374,7 @@ cd frontend
 npm install
 ```
 
-Install contract dependencies
+**Install contract dependencies**
 
 ```bash
 cd ../contracts/crowdfunding
@@ -392,7 +386,7 @@ cargo build
 
 # 🔧 Environment Variables
 
-Create
+Create:
 
 ```
 frontend/.env
@@ -412,13 +406,13 @@ VITE_CONTRACT_ID=YOUR_CONTRACT_ID
 
 # ▶ Running Locally
 
-Frontend
+**Frontend**
 
 ```bash
 npm run dev
 ```
 
-Smart Contract
+**Smart Contract**
 
 ```bash
 cargo test
@@ -430,13 +424,13 @@ cargo test
 
 ## Deploy Smart Contract
 
-Build
+**Build**
 
 ```bash
 stellar contract build
 ```
 
-Deploy
+**Deploy**
 
 ```bash
 stellar contract deploy \
@@ -450,13 +444,13 @@ Copy the generated Contract ID into your frontend `.env`.
 
 ## Deploy Frontend
 
-Build
+**Build**
 
 ```bash
 npm run build
 ```
 
-Deploy using
+**Deploy using**
 
 - Vercel
 - Netlify
@@ -466,13 +460,13 @@ Deploy using
 
 # 🧪 Testing
 
-Run frontend
+**Run frontend tests**
 
 ```bash
 npm run test
 ```
 
-Run smart contract tests
+**Run smart contract tests**
 
 ```bash
 cargo test
@@ -482,11 +476,11 @@ cargo test
 
 # 🔍 Explorer
 
-Contract
+**Contract**
 
 https://stellar.expert/explorer/testnet/contract/YOUR_CONTRACT_ID
 
-Transaction Example
+**Transaction Example**
 
 https://stellar.expert/explorer/testnet/tx/YOUR_TRANSACTION_HASH
 
@@ -539,17 +533,11 @@ git push origin feature/my-feature
 
 **Hari Gajja**
 
-GitHub
+GitHub: https://github.com/Hari-Gajja
 
-https://github.com/Hari-Gajja
+LinkedIn: https://linkedin.com/in/YOUR_LINKEDIN
 
-LinkedIn
-
-https://linkedin.com/in/YOUR_LINKEDIN
-
-Portfolio
-
-https://YOUR_PORTFOLIO
+Portfolio: https://YOUR_PORTFOLIO
 
 ---
 
