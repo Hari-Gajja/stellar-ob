@@ -1,7 +1,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowLeft, Users, Clock, Crosshair, Spinner,
-  CopySimple, CheckCircle, XCircle, Wallet,
+  CopySimple, CheckCircle, XCircle, Wallet, ArrowSquareOut,
 } from "@phosphor-icons/react";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -294,10 +294,15 @@ export default function CampaignDetail() {
                   <div className="card-shell__inner !px-4 !py-3">
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-[#787774]">Contract</span>
-                      <button type="button" onClick={() => copyToClipboard(CONTRACT_ID)} className="inline-flex items-center gap-1.5 text-xs text-[#787774] transition-colors duration-200 hover:text-[#111111]">
-                        {truncateAddress(CONTRACT_ID)}
-                        {copied ? <CheckCircle size={12} className="text-[#346538]" /> : <CopySimple size={12} />}
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <a href={`${import.meta.env.VITE_EXPLORER_URL || "https://stellar.expert/explorer/testnet"}/contract/${CONTRACT_ID}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-[#787774] transition-colors duration-200 hover:text-[#111111]">
+                          View <ArrowSquareOut size={11} />
+                        </a>
+                        <button type="button" onClick={() => copyToClipboard(CONTRACT_ID)} className="inline-flex items-center gap-1.5 text-xs text-[#787774] transition-colors duration-200 hover:text-[#111111]">
+                          {truncateAddress(CONTRACT_ID)}
+                          {copied ? <CheckCircle size={12} className="text-[#346538]" /> : <CopySimple size={12} />}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

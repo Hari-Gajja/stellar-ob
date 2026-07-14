@@ -1,6 +1,7 @@
 import { Spinner, CheckCircle, XCircle, ArrowSquareOut, Clock } from "@phosphor-icons/react";
 import type { TransactionState } from "../types";
-import { CONTRACT_ID } from "../services/contract";
+
+const EXPLORER_URL = import.meta.env.VITE_EXPLORER_URL || "https://stellar.expert/explorer/testnet";
 
 export default function TransactionStatus({
   state,
@@ -11,7 +12,7 @@ export default function TransactionStatus({
 }) {
   if (state.status === "idle") return null;
 
-  const explorerUrl = state.hash && CONTRACT_ID ? `https://stellar.expert/explorer/testnet/tx/${state.hash}` : null;
+  const explorerUrl = state.hash ? `${EXPLORER_URL}/tx/${state.hash}` : null;
 
   const tone = state.status === "confirmed"
     ? "border-[#EAEAEA] bg-[#EDF3EC]"

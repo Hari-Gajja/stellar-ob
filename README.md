@@ -129,12 +129,12 @@ This level is focused on helping you move beyond beginner demos and start buildi
 
 ### Transaction Hashes (Contract Interaction)
 
-| Action | Hash |
-|--------|------|
-| Treasury deploy + init | `4448a0bee5d34b9fd70ae725209af7e5b954347ba9c6cee080c7708af563327b` |
-| Crowdfunding deploy + init | `dddf9c0f02c627f8312573f5bd980b7a36839c5c78a20c3857602502ab78f546` |
-| Campaign creation | *Create a campaign via the live demo* |
-| Donation | *Donate via the live demo* |
+| Action | Hash | Explorer |
+|--------|------|----------|
+| Treasury deploy + init | `4448a0bee5d34b9fd70ae725209af7e5b954347ba9c6cee080c7708af563327b` | [View](https://stellar.expert/explorer/testnet/tx/4448a0bee5d34b9fd70ae725209af7e5b954347ba9c6cee080c7708af563327b) |
+| Crowdfunding deploy + init | `dddf9c0f02c627f8312573f5bd980b7a36839c5c78a20c3857602502ab78f546` | [View](https://stellar.expert/explorer/testnet/tx/dddf9c0f02c627f8312573f5bd980b7a36839c5c78a20c3857602502ab78f546) |
+| Campaign creation | *Create a campaign via the live demo* | — |
+| Donation | *Donate via the live demo* | — |
 
 ---
 
