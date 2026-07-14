@@ -1,0 +1,94 @@
+name: Deploy Contracts
+
+on:
+  workflow_dispatch:
+    inputs:
+      network:
+        description: "Target network"
+        required: true
+        default: "futurenet"
+        type: choice
+        options:
+          - futurenet
+          - testnet
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          target: wasm32v1-none
+          toolchain: stable
+
+      - name: Install Soroban CLI
+        run: cargo install soroban-cli --locked
+
+      - name: Cache Cargo dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            smart-contracts/target
+          key: ${{ runner.os }}-cargo-deploy-${{ hashFiles('smart-contracts/Cargo.lock') }}
+
+      - name: Build contracts
+        run: |
+          cargo build --target wasm32v1-none --release -p treasury
+          cargo build --target wasm32v1-none --release -p crowdfunding
+        working-directory: smart-contracts
+
+      - name: Configure network
+        run: |
+          soroban config network add ${{ inputs.network }} \
+            --rpc-url ${{ secrets[format('{0}_RPC_URL', inputs.network)] }} \
+            --network-passphrase "${{ secrets[format('{0}_NETWORK_PASSPHRASE', inputs.network)] }}"
+
+      - name: Deploy treasury contract
+        id: deploy-treasury
+        run: |
+          TREASURY_ID=$(soroban contract deploy \
+            --wasm smart-contracts/target/wasm32v1-none/release/treasury.wasm \
+            --source ${{ secrets[format('{0}_DEPLOYER_SECRET', inputs.network)] }} \
+            --network ${{ inputs.network }})
+          echo "treasury_id=$TREASURY_ID" >> $GITHUB_OUTPUT
+
+      - name: Initialize treasury
+        run: |
+          TREASURY_ID="${{ steps.deploy-treasury.outputs.treasury_id }}"
+          ADMIN_ADDRESS=$(soroban keys address ${{ secrets[format('{0}_DEPLOYER_SECRET', inputs.network)] }})
+          soroban contract invoke \
+            --id $TREASURY_ID \
+            --source ${{ secrets[format('{0}_DEPLOYER_SECRET', inputs.network)] }} \
+            --network ${{ inputs.network }} \
+            -- \
+            initialize --admin $ADMIN_ADDRESS
+
+      - name: Deploy crowdfunding contract
+        id: deploy-crowdfunding
+        run: |
+          CROWDFUNDING_ID=$(soroban contract deploy \
+            --wasm smart-contracts/target/wasm32v1-none/release/crowdfunding.wasm \
+            --source ${{ secrets[format('{0}_DEPLOYER_SECRET', inputs.network)] }} \
+            --network ${{ inputs.network }})
+          echo "crowdfunding_id=$CROWDFUNDING_ID" >> $GITHUB_OUTPUT
+
+      - name: Initialize crowdfunding
+        run: |
+          CROWDFUNDING_ID="${{ steps.deploy-crowdfunding.outputs.crowdfunding_id }}"
+          TREASURY_ID="${{ steps.deploy-treasury.outputs.treasury_id }}"
+          soroban contract invoke \
+            --id $CROWDFUNDING_ID \
+            --source ${{ secrets[format('{0}_DEPLOYER_SECRET', inputs.network)] }} \
+            --network ${{ inputs.network }} \
+            -- \
+            initialize --treasury_address $TREASURY_ID
+
+      - name: Output contract IDs
+        run: |
+          echo "Treasury Contract ID: ${{ steps.deploy-treasury.outputs.treasury_id }}"
+          echo "Crowdfunding Contract ID: ${{ steps.deploy-crowdfunding.outputs.crowdfunding_id }}"
