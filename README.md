@@ -346,7 +346,6 @@ Triggers on **push** to `main`:
 **Hari Gajja**
 
 - GitHub: https://github.com/Hari-Gajja
-- LinkedIn: https://linkedin.com/in/hari-gajja
 
 ---
 
