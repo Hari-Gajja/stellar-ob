@@ -78,26 +78,26 @@ function App() {
             </button>
           </nav>
 
-          <div className="flex items-center gap-1 sm:gap-2">
-            <button type="button" onClick={() => setMobileNavOpen(true)} className="btn-ghost sm:hidden" aria-label="Open navigation menu">
-              <List size={18} />
+          <div className="flex items-center gap-2 sm:gap-2">
+            {address ? (
+              <span className="hidden sm:inline-flex wallet-chip">
+                <span className="wallet-chip__dot" />
+                <span className="font-mono text-xs tabular sm:text-sm">{truncateAddress(address)}</span>
+              </span>
+            ) : (
+              <button type="button" onClick={connect} disabled={connecting} className="hidden sm:inline-flex btn-primary">
+                {connecting ? <Spinner size={16} className="animate-spin" /> : <Wallet size={16} />}
+                <span>{connecting ? "Connecting..." : "Connect wallet"}</span>
+              </button>
+            )}
+
+            <button type="button" onClick={() => setMobileNavOpen(true)} className="btn-ghost" aria-label="Open navigation menu">
+              <List size={20} />
             </button>
 
-            {address ? (
-              <>
-                <span className="wallet-chip">
-                  <span className="wallet-chip__dot" />
-                  <span className="font-mono text-xs tabular sm:text-sm">{truncateAddress(address)}</span>
-                </span>
-                <button type="button" onClick={disconnect} className="btn-danger-ghost" title="Disconnect wallet" aria-label="Disconnect wallet">
-                  <SignOut size={16} />
-                </button>
-              </>
-            ) : (
-              <button type="button" onClick={connect} disabled={connecting} className="btn-primary">
-                {connecting ? <Spinner size={16} className="animate-spin" /> : <Wallet size={16} />}
-                <span className="hidden sm:inline">{connecting ? "Connecting..." : "Connect wallet"}</span>
-                <span className="sm:hidden">{connecting ? "..." : "Connect"}</span>
+            {address && (
+              <button type="button" onClick={disconnect} className="hidden sm:inline-flex btn-danger-ghost" title="Disconnect wallet" aria-label="Disconnect wallet">
+                <SignOut size={16} />
               </button>
             )}
           </div>
@@ -106,40 +106,50 @@ function App() {
         {mobileNavOpen && (
           <div className="fixed inset-0 z-50 sm:hidden">
             <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setMobileNavOpen(false)} />
-            <div className="absolute bottom-0 left-0 right-0 rounded-t-2xl border border-[#EAEAEA] bg-white p-6 pb-10 shadow-xl">
-              <div className="mx-auto mb-6 h-1 w-10 rounded-full bg-[#EAEAEA]" />
-              <nav className="flex flex-col gap-1" aria-label="Mobile navigation">
-                {mobileNavItems.filter((i) => i.show).map((item) => (
+            <div className="absolute bottom-0 left-0 right-0 rounded-t-3xl border border-[#EAEAEA] bg-white pb-10 pt-2 shadow-xl">
+              <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-[#D0D0D0]" />
+
+              <div className="px-4">
+                {address && (
+                  <div className="mb-6 mt-4 flex items-center gap-3 rounded-xl border border-[#EAEAEA] bg-[#F7F6F3] px-4 py-3">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#111111] text-white">
+                      <Wallet size={16} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-semibold text-[#787774]">Connected</p>
+                      <p className="truncate font-mono text-sm font-medium text-[#111111]">{address}</p>
+                    </div>
+                    <button type="button" onClick={() => { disconnect(); setMobileNavOpen(false); }} className="shrink-0 rounded-lg border border-[#EAEAEA] bg-white px-3 py-1.5 text-xs font-semibold text-[#787774] transition-colors duration-200 hover:text-[#9F2F2D] hover:border-red-200 hover:bg-red-50">
+                      Disconnect
+                    </button>
+                  </div>
+                )}
+
+                <nav className="flex flex-col gap-1" aria-label="Mobile navigation">
+                  {mobileNavItems.filter((i) => i.show).map((item) => (
+                    <button
+                      key={item.path}
+                      type="button"
+                      onClick={() => handleMobileNav(item.path)}
+                      className={`flex items-center gap-3 rounded-xl px-4 py-3.5 text-left text-sm font-semibold transition-all duration-200 ${
+                        isActive(item.path) ? "bg-black/[0.08] text-[#111111]" : "text-[#787774] hover:bg-black/[0.04] hover:text-[#111111]"
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </nav>
+
+                {!address && (
                   <button
-                    key={item.path}
                     type="button"
-                    onClick={() => handleMobileNav(item.path)}
-                    className={`flex items-center gap-3 rounded-xl px-4 py-3.5 text-left text-sm font-semibold transition-all duration-200 ${
-                      isActive(item.path) ? "bg-black/[0.06] text-[#111111]" : "text-[#787774] hover:bg-black/[0.04] hover:text-[#111111]"
-                    }`}
+                    onClick={() => { connect(); setMobileNavOpen(false); }}
+                    className="btn-primary mt-6 w-full"
                   >
-                    {item.label}
+                    <Wallet size={16} /> Connect wallet
                   </button>
-                ))}
-              </nav>
-              {!address && (
-                <button
-                  type="button"
-                  onClick={() => { connect(); setMobileNavOpen(false); }}
-                  className="btn-primary mt-4 w-full"
-                >
-                  <Wallet size={16} /> Connect wallet
-                </button>
-              )}
-              {address && (
-                <button
-                  type="button"
-                  onClick={() => { disconnect(); setMobileNavOpen(false); }}
-                  className="btn-danger-ghost mt-4 w-full justify-center"
-                >
-                  <SignOut size={16} /> Disconnect
-                </button>
-              )}
+                )}
+              </div>
             </div>
           </div>
         )}
