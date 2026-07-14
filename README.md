@@ -118,7 +118,7 @@ This level is focused on helping you move beyond beginner demos and start buildi
 - [x] **Test output with 3+ passing tests** — 35 tests total (17 contract + 18 frontend), all passing
 - [x] **Demo video walkthrough**
 
-  <video src="docs/screenshots/StellarFund%20-%20Google%20Chrome%202026-07-15%2002-14-24.mp4" controls width="100%"></video>
+  <video src="docs/screenshots/StellarFund.mp4" controls width="100%"></video>
 
 ### Contract Addresses (Testnet)
 
