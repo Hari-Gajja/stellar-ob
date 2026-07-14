@@ -39,13 +39,7 @@ This level is focused on helping you move beyond beginner demos and start buildi
 - **Owners** create campaigns, receive funds on success, and manage their projects
 - **Real-time updates** via polling with transaction lifecycle feedback (Signing → Submitting → Confirmed → Failed)
 
-## Rewards
 
-At the end of the monthly review period, selected winners will receive rewards based on the quality, complexity, and execution of their submission.
-
-Prize per selected winner: **$50**
-
----
 
 ## Requirements
 
