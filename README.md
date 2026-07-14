@@ -232,6 +232,11 @@ stellar-ob/
 </p>
 
 <p align="center">
+  <strong>Test Output — 18/18 passing</strong><br />
+  <img src="docs/screenshots/tests.png" alt="Test output" width="720" />
+</p>
+
+<p align="center">
   <strong>CI/CD Pipeline</strong><br />
   <img src="docs/screenshots/pipeline.png" alt="GitHub Actions pipeline" width="720" />
 </p>
