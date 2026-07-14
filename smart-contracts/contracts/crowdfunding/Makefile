@@ -6,8 +6,16 @@ build:
 test:
 	stellar contract test
 
-deploy-testnet:
+deploy-treasury:
 	stellar contract deploy \
 		--network testnet \
-		--source user \
+		--source testnet \
+		--wasm target/wasm32v1-none/release/treasury.wasm
+
+deploy-crowdfunding:
+	stellar contract deploy \
+		--network testnet \
+		--source testnet \
 		--wasm target/wasm32v1-none/release/crowdfunding.wasm
+
+deploy-testnet: build deploy-treasury deploy-crowdfunding
