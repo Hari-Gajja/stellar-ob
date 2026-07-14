@@ -236,25 +236,6 @@ stellar-ob/
   <img src="docs/screenshots/pipeline.png" alt="GitHub Actions pipeline" width="720" />
 </p>
 
-<p align="center">
-  <strong>Wallet Balance Page</strong><br />
-  <img src="docs/screenshots/wallet.png" alt="Wallet balance" width="720" />
-</p>
-
-<p align="center">
-  <strong>Wallet Request</strong><br />
-  <img src="docs/screenshots/wallet-req.png" alt="Wallet request" width="720" />
-</p>
-
-<p align="center">
-  <strong>Successful Transaction</strong><br />
-  <img src="docs/screenshots/succesful-transaction.png" alt="Successful transaction" width="720" />
-</p>
-
-<p align="center">
-  <strong>Campaign Donation</strong><br />
-  <img src="docs/screenshots/campaign-donation.png" alt="Campaign donation" width="720" />
-</p>
 
 ---
 
