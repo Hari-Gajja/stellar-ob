@@ -1,51 +1,56 @@
-import { Loader2, CheckCircle, XCircle, ExternalLink, Clock } from "lucide-react";
+import { Spinner, CheckCircle, XCircle, ArrowSquareOut, Clock } from "@phosphor-icons/react";
 import type { TransactionState } from "../types";
 import { CONTRACT_ID } from "../services/contract";
 
 export default function TransactionStatus({
   state,
-  onClose,
+  onDismiss,
 }: {
   state: TransactionState;
-  onClose?: () => void;
+  onDismiss?: () => void;
 }) {
   if (state.status === "idle") return null;
 
-  const explorerUrl =
-    state.hash && CONTRACT_ID
-      ? `https://stellar.expert/explorer/testnet/tx/${state.hash}`
-      : null;
+  const explorerUrl = state.hash && CONTRACT_ID ? `https://stellar.expert/explorer/testnet/tx/${state.hash}` : null;
+
+  const tone = state.status === "confirmed"
+    ? "border-[#EAEAEA] bg-[#EDF3EC]"
+    : state.status === "failed"
+      ? "border-[#EAEAEA] bg-[#FDEBEC]"
+      : state.status === "pending"
+        ? "border-[#EAEAEA] bg-[#FBF3DB]"
+        : "border-[#EAEAEA] bg-white";
 
   return (
-    <div className="mt-4 rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+    <div className={`mt-4 rounded-xl border p-4 ${tone}`}>
       <div className="flex items-start gap-3">
         {state.status === "signing" && (
           <>
-            <Loader2 className="h-5 w-5 animate-spin text-zinc-500 mt-0.5" />
+            <Spinner size={20} className="mt-0.5 animate-spin text-[#787774]" />
             <div className="flex-1">
-              <p className="text-sm font-medium">Signing transaction...</p>
-              <p className="text-xs text-zinc-500 mt-1">Please approve in your wallet</p>
+              <p className="text-sm font-medium text-[#111111]">Signing transaction...</p>
+              <p className="mt-1 text-xs text-[#787774]">Approve in your wallet</p>
             </div>
           </>
         )}
         {state.status === "submitting" && (
           <>
-            <Loader2 className="h-5 w-5 animate-spin text-blue-500 mt-0.5" />
+            <Spinner size={20} className="mt-0.5 animate-spin text-[#111111]" />
             <div className="flex-1">
-              <p className="text-sm font-medium">Submitting transaction...</p>
-              <p className="text-xs text-zinc-500 mt-1">Sending to the Stellar network</p>
+              <p className="text-sm font-medium text-[#111111]">Submitting transaction...</p>
+              <p className="mt-1 text-xs text-[#787774]">Sending to the Stellar network</p>
             </div>
           </>
         )}
         {state.status === "pending" && (
           <>
-            <Clock className="h-5 w-5 text-amber-500 mt-0.5" />
+            <Clock size={20} className="mt-0.5 text-[#956400]" />
             <div className="flex-1">
-              <p className="text-sm font-medium">Transaction pending</p>
-              <p className="text-xs text-zinc-500 mt-1">Waiting for confirmation</p>
+              <p className="text-sm font-medium text-[#111111]">Transaction pending</p>
+              <p className="mt-1 text-xs text-[#787774]">Waiting for confirmation</p>
               {explorerUrl && (
-                <a href={explorerUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-blue-600 mt-1 hover:underline">
-                  View on explorer <ExternalLink className="h-3 w-3" />
+                <a href={explorerUrl} target="_blank" rel="noopener noreferrer" className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-[#111111] transition-colors hover:text-[#787774]">
+                  View on explorer <ArrowSquareOut size={12} />
                 </a>
               )}
             </div>
@@ -53,15 +58,13 @@ export default function TransactionStatus({
         )}
         {state.status === "confirmed" && (
           <>
-            <CheckCircle className="h-5 w-5 text-emerald-500 mt-0.5" />
+            <CheckCircle size={20} className="mt-0.5 text-[#346538]" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-emerald-700">Transaction confirmed!</p>
-              {state.hash && (
-                <p className="text-xs text-zinc-500 mt-1 font-mono break-all">{state.hash}</p>
-              )}
+              <p className="text-sm font-medium text-[#346538]">Transaction confirmed</p>
+              {state.hash && <p className="mt-1 break-all font-mono text-xs text-[#787774]">{state.hash}</p>}
               {explorerUrl && (
-                <a href={explorerUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-blue-600 mt-1 hover:underline">
-                  View on explorer <ExternalLink className="h-3 w-3" />
+                <a href={explorerUrl} target="_blank" rel="noopener noreferrer" className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-[#111111] transition-colors hover:text-[#787774]">
+                  View on explorer <ArrowSquareOut size={12} />
                 </a>
               )}
             </div>
@@ -69,20 +72,16 @@ export default function TransactionStatus({
         )}
         {state.status === "failed" && (
           <>
-            <XCircle className="h-5 w-5 text-red-500 mt-0.5" />
+            <XCircle size={20} className="mt-0.5 text-[#9F2F2D]" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-red-700">Transaction failed</p>
-              {state.error && <p className="text-xs text-red-600 mt-1">{state.error}</p>}
+              <p className="text-sm font-medium text-[#9F2F2D]">Transaction failed</p>
+              {state.error && <p className="mt-1 text-xs text-[#787774]">{state.error}</p>}
             </div>
           </>
         )}
-        {onClose && state.status !== "signing" && state.status !== "submitting" && state.status !== "pending" && (
-          <button
-            onClick={onClose}
-            className="text-zinc-400 hover:text-zinc-600 text-lg leading-none"
-            aria-label="Close"
-          >
-            ×
+        {onDismiss && state.status !== "signing" && state.status !== "submitting" && state.status !== "pending" && (
+          <button type="button" onClick={onDismiss} className="shrink-0 text-[#787774] transition-colors hover:text-[#111111]" aria-label="Dismiss">
+            <XCircle size={16} />
           </button>
         )}
       </div>

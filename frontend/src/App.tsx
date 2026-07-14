@@ -1,5 +1,5 @@
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { Wallet, LogOut, Loader2, Plus, LayoutGrid } from "lucide-react";
+import { Wallet, SignOut, Spinner, Plus, Layout } from "@phosphor-icons/react";
 import { useWallet } from "./contexts/AppContext";
 import { truncateAddress } from "./utils/format";
 
@@ -7,81 +7,92 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const { address, connecting, connect, disconnect } = useWallet();
+  const isHome = location.pathname === "/";
+  const isCreate = location.pathname === "/create";
+  const isDashboard = location.pathname.startsWith("/dashboard");
+  const isWallet = location.pathname === "/dashboard/wallet";
 
   return (
-    <div className="min-h-screen bg-white text-zinc-950">
-      <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-6 pb-10 pt-5 lg:px-10">
-        <header className="flex h-16 items-center justify-between border-b border-zinc-200 text-sm">
-          <button onClick={() => navigate("/")} className="font-semibold tracking-tight text-lg">
-            StellarFund
+    <div className="min-h-[100dvh] text-[#111111]">
+      <div className="shell">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:text-[#111111] focus:border focus:border-[#EAEAEA]"
+        >
+          Skip to content
+        </a>
+
+        <header className="nav-bar">
+          <button onClick={() => navigate("/")} className="brand-mark" type="button">
+            <span className="brand-mark__icon" aria-hidden>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M8 1.5L13.5 4.75V11.25L8 14.5L2.5 11.25V4.75L8 1.5Z" stroke="#111111" strokeWidth="1.4" strokeLinejoin="round" />
+                <path d="M5.5 8H10.5M8 5.5V10.5" stroke="#111111" strokeWidth="1.4" strokeLinecap="round" />
+              </svg>
+            </span>
+            <span className="text-base font-semibold tracking-tight text-[#111111]">StellarFund</span>
           </button>
-          <nav className="flex items-center gap-4 text-zinc-600">
-            <button
-              onClick={() => navigate("/")}
-              className={`transition text-sm ${location.pathname === "/" ? "text-zinc-950 font-medium" : "hover:text-zinc-950"}`}
-            >
+
+          <nav className="hidden items-center gap-1 sm:flex" aria-label="Primary">
+            <button type="button" onClick={() => navigate("/")} className={`nav-link ${isHome ? "nav-link--active" : ""}`}>
               Campaigns
             </button>
-            <button
-              onClick={() => {
-                if (!address) { connect(); return; }
-                navigate("/create");
-              }}
-              className="inline-flex items-center gap-1 text-sm transition hover:text-zinc-950"
-            >
-              <Plus className="h-3.5 w-3.5" />
+            {address && (
+              <button type="button" onClick={() => navigate("/dashboard")} className={`nav-link inline-flex items-center gap-1.5 ${isDashboard ? "nav-link--active" : ""}`}>
+                <Layout size={14} />
+                Dashboard
+              </button>
+            )}
+            {address && (
+              <button type="button" onClick={() => navigate("/dashboard/wallet")} className={`nav-link inline-flex items-center gap-1.5 ${isWallet ? "nav-link--active" : ""}`}>
+                <Wallet size={14} />
+                Wallet
+              </button>
+            )}
+            <button type="button" onClick={() => { if (!address) { connect(); return; } navigate("/create"); }} className={`nav-link inline-flex items-center gap-1.5 ${isCreate ? "nav-link--active" : ""}`}>
+              <Plus size={14} />
               Create
             </button>
           </nav>
+
           <div className="flex items-center gap-2">
+            <button type="button" onClick={() => { if (!address) { connect(); return; } navigate("/create"); }} className="btn-ghost sm:hidden" aria-label="Create campaign">
+              <Plus size={16} />
+            </button>
+
             {address ? (
               <>
-                <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                  {truncateAddress(address)}
+                <span className="wallet-chip">
+                  <span className="wallet-chip__dot" />
+                  <span className="font-mono text-xs tabular sm:text-sm">{truncateAddress(address)}</span>
                 </span>
-                <button
-                  onClick={disconnect}
-                  className="inline-flex items-center gap-1 rounded-full border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-600 transition hover:border-red-300 hover:bg-red-50 hover:text-red-600"
-                  title="Disconnect wallet"
-                >
-                  <LogOut className="h-4 w-4" />
+                <button type="button" onClick={disconnect} className="btn-danger-ghost" title="Disconnect wallet" aria-label="Disconnect wallet">
+                  <SignOut size={16} />
                 </button>
               </>
             ) : (
-              <button
-                onClick={connect}
-                disabled={connecting}
-                className="inline-flex items-center gap-2 rounded-full border border-zinc-900 px-4 py-2 text-sm font-medium transition hover:bg-zinc-950 hover:text-white disabled:opacity-50"
-              >
-                {connecting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Wallet className="h-4 w-4" />
-                )}
-                {connecting ? "Connecting..." : "Connect wallet"}
+              <button type="button" onClick={connect} disabled={connecting} className="btn-primary">
+                {connecting ? <Spinner size={16} className="animate-spin" /> : <Wallet size={16} />}
+                <span className="hidden sm:inline">{connecting ? "Connecting..." : "Connect wallet"}</span>
+                <span className="sm:hidden">{connecting ? "..." : "Connect"}</span>
               </button>
             )}
           </div>
         </header>
 
-        <Outlet />
+        <main id="main-content" className="flex-1 outline-none">
+          <Outlet />
+        </main>
 
-        <footer className="flex flex-col gap-3 border-t border-zinc-200 py-6 text-sm text-zinc-500 md:flex-row md:items-center md:justify-between">
-          <p>StellarFund - Multi-campaign crowdfunding on Soroban.</p>
-          <div className="flex gap-4">
-            <button onClick={() => navigate("/")} className="transition hover:text-zinc-950">
-              Campaigns
-            </button>
-            <button
-              onClick={() => {
-                if (!address) { connect(); return; }
-                navigate("/create");
-              }}
-              className="transition hover:text-zinc-950"
-            >
-              Create
-            </button>
+        <footer className="footer-bar">
+          <p>StellarFund — Multi-campaign crowdfunding on Soroban.</p>
+          <div className="flex flex-wrap gap-1">
+            <button type="button" onClick={() => navigate("/")} className="nav-link">Campaigns</button>
+            {address && <button type="button" onClick={() => navigate("/dashboard")} className={`nav-link ${isDashboard ? "nav-link--active" : ""}`}>Dashboard</button>}
+            <button type="button" onClick={() => { if (!address) { connect(); return; } navigate("/create"); }} className="nav-link">Create</button>
+            <span className="mx-1 text-[#EAEAEA]" aria-hidden>/</span>
+            <button type="button" onClick={() => window.open("https://stellar.org/privacy", "_blank")} className="nav-link">Privacy</button>
+            <button type="button" onClick={() => window.open("https://stellar.org/terms", "_blank")} className="nav-link">Terms</button>
           </div>
         </footer>
       </div>
