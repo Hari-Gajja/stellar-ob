@@ -116,7 +116,7 @@ This level is focused on helping you move beyond beginner demos and start buildi
 - [x] **Screenshot showing mobile responsive UI** — see [Screenshots](#screenshots)
 - [x] **Screenshot of CI/CD pipeline running** — see [Screenshots](#screenshots)
 - [x] **Test output with 3+ passing tests** — 35 tests total (17 contract + 18 frontend), all passing
-- [x] **Demo video link (1–2 minutes)** — [video link](https://youtu.be/your-video)
+- [x] **Demo video walkthrough** — `docs/screenshots/StellarFund - Google Chrome 2026-07-15 02-14-24.mp4`
 
 ### Contract Addresses (Testnet)
 
