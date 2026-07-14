@@ -103,10 +103,10 @@ async function writeCall<T>(
     networkPassphrase: STELLAR_NETWORK_PASSPHRASE,
     rpcUrl: STELLAR_RPC_URL,
     publicKey,
-    signTransaction: (xdrStr: string) =>
+    signTransaction: (xdrStr: string, opts?: { networkPassphrase?: string; address?: string }) =>
       signTransaction(xdrStr, {
-        networkPassphrase: STELLAR_NETWORK_PASSPHRASE,
-        address: publicKey,
+        networkPassphrase: opts?.networkPassphrase ?? STELLAR_NETWORK_PASSPHRASE,
+        address: opts?.address ?? publicKey,
       }),
     parseResultXdr: (v) => parse(scValToNative(v)),
   });

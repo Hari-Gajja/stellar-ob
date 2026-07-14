@@ -8,9 +8,13 @@ export const STELLAR_RPC_URL =
 export const STELLAR_HORIZON_URL =
   import.meta.env.VITE_HORIZON_URL ?? "https://horizon-testnet.stellar.org";
 // Initialize the kit with all default wallet modules (Freighter, xBull, Albedo, etc.)
-StellarWalletsKit.init({
-  modules: defaultModules(),
-});
+try {
+  StellarWalletsKit.init({
+    modules: defaultModules(),
+  });
+} catch {
+  console.warn("Failed to initialize StellarWalletsKit – wallet features may be unavailable");
+}
 /**
  * Opens the Stellar Wallets Kit auth modal, allowing the user to pick a wallet,
  * connect it, and return the active address.
@@ -59,9 +63,24 @@ export async function signTransaction(
   xdr: string,
   opts?: { networkPassphrase?: string; address?: string }
 ): Promise<{ signedTxXdr: string; signerAddress?: string }> {
-  const result = await StellarWalletsKit.signTransaction(xdr, {
-    networkPassphrase: opts?.networkPassphrase ?? STELLAR_NETWORK_PASSPHRASE,
-    address: opts?.address,
-  });
-  return result;
+  try {
+    const result = await StellarWalletsKit.signTransaction(xdr, {
+      networkPassphrase: opts?.networkPassphrase ?? STELLAR_NETWORK_PASSPHRASE,
+      address: opts?.address,
+    });
+    return result;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "";
+    if (
+      msg.includes("message channel closed") ||
+      msg.includes("listener indicated") ||
+      msg.includes("async response") ||
+      msg.includes("User rejected") ||
+      msg.includes("cancel") ||
+      msg.includes("reject")
+    ) {
+      throw new Error("Transaction was cancelled by the user");
+    }
+    throw err;
+  }
 }
