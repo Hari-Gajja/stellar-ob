@@ -113,8 +113,8 @@ This level is focused on helping you move beyond beginner demos and start buildi
 - [x] **Live demo link** — [stellar-fundd-ob.netlify.app](https://stellar-fundd-ob.netlify.app/)
 - [x] **Contract deployment address** — see table below
 - [x] **Transaction hash for contract interaction** — see below
-- [x] **Screenshot showing mobile responsive UI** — see `docs/screenshots/`
-- [x] **Screenshot of CI/CD pipeline running** — see `docs/screenshots/`
+- [x] **Screenshot showing mobile responsive UI** — see [Screenshots](#screenshots)
+- [x] **Screenshot of CI/CD pipeline running** — see [Screenshots](#screenshots)
 - [x] **Test output with 3+ passing tests** — 35 tests total (17 contract + 18 frontend), all passing
 - [x] **Demo video link (1–2 minutes)** — [video link](https://youtu.be/your-video)
 
@@ -221,6 +221,40 @@ stellar-ob/
 | CI/CD | GitHub Actions |
 | Serverless | Netlify Functions |
 | Deployment | Netlify |
+
+---
+
+## Screenshots
+
+<p align="center">
+  <strong>Mobile Responsive UI</strong><br />
+  <img src="docs/screenshots/mobile-responsive.png" alt="Mobile responsive UI" width="720" />
+</p>
+
+<p align="center">
+  <strong>CI/CD Pipeline</strong><br />
+  <img src="docs/screenshots/pipeline.png" alt="GitHub Actions pipeline" width="720" />
+</p>
+
+<p align="center">
+  <strong>Wallet Balance Page</strong><br />
+  <img src="docs/screenshots/wallet.png" alt="Wallet balance" width="720" />
+</p>
+
+<p align="center">
+  <strong>Wallet Request</strong><br />
+  <img src="docs/screenshots/wallet-req.png" alt="Wallet request" width="720" />
+</p>
+
+<p align="center">
+  <strong>Successful Transaction</strong><br />
+  <img src="docs/screenshots/succesful-transaction.png" alt="Successful transaction" width="720" />
+</p>
+
+<p align="center">
+  <strong>Campaign Donation</strong><br />
+  <img src="docs/screenshots/campaign-donation.png" alt="Campaign donation" width="720" />
+</p>
 
 ---
 
