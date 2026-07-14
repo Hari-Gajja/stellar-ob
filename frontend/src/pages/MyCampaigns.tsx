@@ -67,7 +67,7 @@ export default function MyCampaigns() {
 
   return (
     <div className="flex-1 pb-20 pt-8 sm:pt-12">
-      <motion.div initial={reduceMotion ? false : { opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }} className="flex items-center justify-between">
+      <motion.div initial={reduceMotion ? false : { opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }} className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <button type="button" onClick={() => navigate("/dashboard")} className="mb-3 inline-flex items-center gap-1 text-xs font-semibold tracking-wide text-[#787774] transition-colors duration-200 hover:text-[#111111]">
             <ArrowLeft size={12} />Dashboard
@@ -81,10 +81,10 @@ export default function MyCampaigns() {
         </div>
       </motion.div>
 
-      <div className="mt-8">
-        <div className="filter-segment" role="group" aria-label="Filter by status">
+      <div className="mt-8 overflow-x-auto">
+        <div className="filter-segment w-fit" role="group" aria-label="Filter by status">
           {(["all", "Active", "Successful", "Failed", "Closed"] as StatusFilter[]).map((f) => (
-            <button key={f} type="button" onClick={() => setFilterBy(f)} className={`filter-segment__item ${filterBy === f ? "filter-segment__item--active" : ""}`}>{f === "all" ? "All" : f}</button>
+            <button key={f} type="button" onClick={() => setFilterBy(f)} className={`filter-segment__item whitespace-nowrap ${filterBy === f ? "filter-segment__item--active" : ""}`}>{f === "all" ? "All" : f}</button>
           ))}
         </div>
       </div>

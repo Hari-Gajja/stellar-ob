@@ -98,9 +98,9 @@ export default function WalletBalance() {
         transition={{ duration: 0.5, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
         className="mt-6"
       >
-        <div className="mb-3 flex items-baseline gap-2">
+        <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-2">
           <h2 className="text-sm font-semibold text-[#787774]">Other assets</h2>
-          <span className="text-[11px] text-[#787774]">— tokens and trustlines on this Stellar account</span>
+          <span className="text-[11px] text-[#787774]">tokens and trustlines on this Stellar account</span>
         </div>
         {loading ? (
           <div className="card-shell">
@@ -121,7 +121,7 @@ export default function WalletBalance() {
                 <div key={i} className="flex items-center justify-between px-6 py-3.5 sm:px-7">
                   <div>
                     <p className="text-sm font-medium text-[#111111]">{b.asset_code || b.asset_type}</p>
-                    {b.asset_issuer && <p className="text-[11px] text-[#787774] font-mono truncate max-w-[200px]">{truncateAddress(b.asset_issuer)}</p>}
+                    {b.asset_issuer && <p className="text-[11px] text-[#787774] font-mono truncate max-w-[120px] sm:max-w-[200px]">{truncateAddress(b.asset_issuer)}</p>}
                   </div>
                   <p className="tabular text-sm font-semibold text-[#111111]">{Number(b.balance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 7 })}</p>
                 </div>

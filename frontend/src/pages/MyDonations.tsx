@@ -69,7 +69,7 @@ export default function MyDonations() {
 
   return (
     <div className="flex-1 pb-20 pt-8 sm:pt-12">
-      <motion.div initial={reduceMotion ? false : { opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }} className="flex items-center justify-between">
+      <motion.div initial={reduceMotion ? false : { opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }} className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <button type="button" onClick={() => navigate("/dashboard")} className="mb-3 inline-flex items-center gap-1 text-xs font-semibold tracking-wide text-[#787774] transition-colors duration-200 hover:text-[#111111]">
             <ArrowLeft size={12} />Dashboard
@@ -77,7 +77,7 @@ export default function MyDonations() {
           <h1 className="section-title">My donations</h1>
           <p className="mt-1 text-sm text-[#787774]">{donations.length} campaign{donations.length !== 1 ? "s" : ""} &middot; {stroopsToXlm(totalDonated).toLocaleString()} XLM total</p>
         </div>
-        <button type="button" onClick={load} disabled={loading} className="btn-ghost" aria-label="Refresh"><ArrowsClockwise size={16} className={loading ? "animate-spin" : ""} /></button>
+        <button type="button" onClick={load} disabled={loading} className="btn-ghost self-start sm:self-auto" aria-label="Refresh"><ArrowsClockwise size={16} className={loading ? "animate-spin" : ""} /></button>
       </motion.div>
 
       <section className="mt-8">

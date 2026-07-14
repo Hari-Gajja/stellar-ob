@@ -134,15 +134,15 @@ export default function Home() {
             <MagnifyingGlass className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#787774]" />
             <input type="text" placeholder="Search campaigns..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="field py-2.5 pl-10 pr-4" aria-label="Search campaigns" />
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="filter-segment" role="group" aria-label="Filter campaigns">
+          <div className="flex items-center gap-2 overflow-x-auto">
+            <div className="filter-segment shrink-0" role="group" aria-label="Filter campaigns">
               {(["all", "active", "completed", "expired", "closed"] as FilterOption[]).map((f) => (
-                <button key={f} type="button" onClick={() => setFilterBy(f)} className={`filter-segment__item ${filterBy === f ? "filter-segment__item--active" : ""}`}>
+                <button key={f} type="button" onClick={() => setFilterBy(f)} className={`filter-segment__item whitespace-nowrap ${filterBy === f ? "filter-segment__item--active" : ""}`}>
                   {f === "all" ? "All" : f === "active" ? "Active" : f === "completed" ? "Completed" : f === "expired" ? "Expired" : "Closed"}
                 </button>
               ))}
             </div>
-            <button type="button" onClick={() => setShowFilters(!showFilters)} className={`rounded-lg border p-2.5 transition-all duration-200 ${showFilters ? "border-[#111111]/30 bg-black/[0.04] text-[#111111]" : "border-[#EAEAEA] bg-white text-[#787774] hover:border-[#D0D0D0] hover:text-[#111111]"}`} aria-expanded={showFilters} aria-label="Toggle sort options">
+            <button type="button" onClick={() => setShowFilters(!showFilters)} className={`shrink-0 rounded-lg border p-2.5 transition-all duration-200 ${showFilters ? "border-[#111111]/30 bg-black/[0.04] text-[#111111]" : "border-[#EAEAEA] bg-white text-[#787774] hover:border-[#D0D0D0] hover:text-[#111111]"}`} aria-expanded={showFilters} aria-label="Toggle sort options">
               <SlidersHorizontal size={16} />
             </button>
           </div>

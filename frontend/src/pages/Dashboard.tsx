@@ -74,13 +74,13 @@ export default function Dashboard() {
 
   return (
     <div className="flex-1 pb-20 pt-8 sm:pt-12">
-      <div className="flex items-start justify-between">
-        <motion.div initial={reduceMotion ? false : { opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
+      <div className="flex items-start justify-between gap-4">
+        <motion.div initial={reduceMotion ? false : { opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }} className="min-w-0">
           <p className="section-kicker mb-2">Dashboard</p>
           <h1 className="section-title">Welcome back</h1>
-          <p className="mt-1 text-sm text-[#787774]">{truncateAddress(address)}</p>
+          <p className="mt-1 truncate text-sm text-[#787774]">{truncateAddress(address)}</p>
         </motion.div>
-        <motion.button type="button" onClick={load} disabled={loading} className="btn-ghost" aria-label="Refresh">
+        <motion.button type="button" onClick={load} disabled={loading} className="btn-ghost shrink-0" aria-label="Refresh">
           <ArrowsClockwise size={16} className={loading ? "animate-spin" : ""} />
         </motion.button>
       </div>

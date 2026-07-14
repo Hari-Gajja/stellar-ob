@@ -171,7 +171,7 @@ export default function CampaignDetail() {
                   </div>
                 </div>
 
-                <div className="mt-6 grid grid-cols-3 gap-3">
+                <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
                   <div className="stat-tile">
                     <Crosshair size={16} className="mb-1.5 text-[#787774]" />
                     <p className="tabular font-bold tracking-tight text-[#111111] text-base">{daysLeft}</p>
