@@ -18,19 +18,22 @@ Complete deployment instructions for the StellarFund crowdfunding platform.
 
 ## 🏗 Smart Contract Deployment
 
-### 1. Build the Contract
+### 1. Build the Contracts
 
 ```bash
 cd smart-contracts
 
-# Build optimized WASM for production
-cargo build --target wasm32v1-none --release
+# Build both optimized WASM binaries
+cargo build --target wasm32v1-none --release -p treasury
+cargo build --target wasm32v1-none --release -p crowdfunding
 
-# Verify WASM exists
-ls -lh target/wasm32v1-none/release/crowdfunding.wasm
+# Verify WASM files exist
+ls -lh target/wasm32v1-none/release/*.wasm
 ```
 
-**Output:** `target/wasm32v1-none/release/crowdfunding.wasm` (~200KB optimized)
+**Output:**
+- `treasury.wasm` (~7KB optimized)
+- `crowdfunding.wasm` (~29KB optimized)
 
 ### 2. Configure Stellar Network
 
@@ -41,42 +44,73 @@ stellar network add testnet \
   --network-passphrase "Test SDF Network ; September 2015"
 ```
 
-### 3. Deploy Contract
+### 3. Deploy Treasury Contract (Contract B)
 
 ```bash
-# Deploy (replace with your account alias or secret)
-stellar contract deploy \
+# Deploy treasury first
+TREASURY_ID=$(stellar contract deploy \
+  --wasm target/wasm32v1-none/release/treasury.wasm \
+  --source <YOUR_ACCOUNT> \
+  --network testnet \
+  --alias treasury)
+
+echo "Treasury Contract ID: $TREASURY_ID"
+
+# Initialize treasury with admin
+ADMIN_ADDRESS=$(stellar keys address <YOUR_ACCOUNT>)
+stellar contract invoke \
+  --id $TREASURY_ID \
+  --source <YOUR_ACCOUNT> \
+  --network testnet \
+  -- \
+  initialize --admin $ADMIN_ADDRESS
+```
+
+### 4. Deploy Crowdfunding Contract (Contract A)
+
+```bash
+# Deploy crowdfunding with treasury address
+CROWDFUNDING_ID=$(stellar contract deploy \
   --wasm target/wasm32v1-none/release/crowdfunding.wasm \
   --source <YOUR_ACCOUNT> \
   --network testnet \
-  --alias crowdfunding
+  --alias crowdfunding)
+
+echo "Crowdfunding Contract ID: $CROWDFUNDING_ID"
+
+# Initialize crowdfunding with treasury address
+stellar contract invoke \
+  --id $CROWDFUNDING_ID \
+  --source <YOUR_ACCOUNT> \
+  --network testnet \
+  -- \
+  initialize --treasury_address $TREASURY_ID
 ```
 
-**Save the Contract ID** — you'll need it for frontend config and initialization.
+**Save both Contract IDs** — you'll need them for frontend config.
 
-### 4. Initialize Campaign (One-Time, Owner Only)
+### 5. Create a Campaign
 
 ```bash
-# Get contract ID from alias
 CONTRACT_ID=$(stellar contract id --alias crowdfunding --network testnet)
 
-# Initialize campaign
 stellar contract invoke \
   --id $CONTRACT_ID \
   --source <OWNER_ACCOUNT> \
   --network testnet \
   -- \
-  initialize_campaign \
+  create_campaign \
   --owner <OWNER_ADDRESS> \
   --name "Open Source Tooling Fund" \
   --description "Support the next generation of Stellar builders." \
-  --funding_goal 25000000000000
+  --funding_goal 25000000000000 \
+  --deadline <FUTURE_TIMESTAMP>
 ```
 
 > ⚠️ **Amounts are in stroops** (1 XLM = 10,000,000 stroops).  
 > Example: 2,500 XLM = 25,000,000,000,000 stroops.
 
-### 5. Verify Deployment
+### 6. Verify Deployment
 
 ```bash
 # Check campaign state
@@ -84,10 +118,10 @@ stellar contract invoke \
   --id $CONTRACT_ID \
   --network testnet \
   -- \
-  get_campaign
+  get_campaign --campaign_id 1
 ```
 
-Expected output shows your campaign with `total_raised: 0`, `is_active: true`.
+Expected output shows your campaign with `total_raised: 0` and `status: Active`.
 
 ---
 
@@ -98,8 +132,9 @@ Expected output shows your campaign with `total_raised: 0`, `is_active: true`.
 Create `frontend/.env`:
 
 ```env
-# Required: Your deployed contract ID
+# Required: Your deployed contract IDs
 VITE_CONTRACT_ID=CAXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+VITE_TREASURY_CONTRACT_ID=CAXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 # Testnet (default)
 VITE_NETWORK_PASSPHRASE="Test SDF Network ; September 2015"
@@ -161,7 +196,8 @@ In Vercel Project Settings → Environment Variables, add:
 
 | Name | Value | Environment |
 |------|-------|-------------|
-| `VITE_CONTRACT_ID` | Your contract ID | Production, Preview |
+| `VITE_CONTRACT_ID` | Your crowdfunding contract ID | Production, Preview |
+| `VITE_TREASURY_CONTRACT_ID` | Your treasury contract ID | Production, Preview |
 | `VITE_NETWORK_PASSPHRASE` | `Test SDF Network ; September 2015` | Production, Preview |
 | `VITE_RPC_URL` | `https://soroban-testnet.stellar.org` | Production, Preview |
 | `VITE_HORIZON_URL` | `https://horizon-testnet.stellar.org` | Production, Preview |
