@@ -1,21 +1,16 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { connectWallet, getStoredAddress, disconnectWallet, signTransaction } from "../services/wallet";
 import {
-  getCampaign,
-  getRecentDonations,
-  getAllCampaigns,
   donate as contractDonate,
+  withdrawFunds as contractWithdraw,
+  refund as contractRefund,
   CONTRACT_ID,
 } from "../services/contract";
 import type {
   WalletInfo,
   TransactionState,
   ToastMessage,
-  CampaignData,
-  DonationRecord,
-  DonationProgress,
 } from "../types";
-import { stroopsToXlm } from "../utils/format";
 
 interface WalletContextType {
   address: string | null;
@@ -86,108 +81,11 @@ export function useWallet() {
   return context;
 }
 
-interface CampaignContextType {
-  campaigns: CampaignData[];
-  campaign: CampaignData | null;
-  donations: DonationRecord[];
-  progress: DonationProgress | null;
-  loading: boolean;
-  error: string | null;
-  refresh: () => Promise<void>;
-  refreshCampaign: (id: number) => Promise<void>;
-  lastUpdated: number | null;
-}
-
-const CampaignContext = createContext<CampaignContextType | undefined>(undefined);
-
-export function CampaignProvider({ children }: { children: ReactNode }) {
-  const [campaigns, setCampaigns] = useState<CampaignData[]>([]);
-  const [campaign, setCampaign] = useState<CampaignData | null>(null);
-  const [donations, setDonations] = useState<DonationRecord[]>([]);
-  const [progress, setProgress] = useState<DonationProgress | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
-
-  const calculateProgress = useCallback((campaignData: CampaignData): DonationProgress => {
-    const goalXlm = stroopsToXlm(campaignData.funding_goal);
-    const raisedXlm = stroopsToXlm(campaignData.total_raised);
-    const percentage = campaignData.funding_goal === 0n
-      ? 0
-      : Math.min(100, Math.round((Number(campaignData.total_raised) / Number(campaignData.funding_goal)) * 100));
-    const endTime = Number(campaignData.deadline) * 1000;
-    const timeLeft = endTime - Date.now();
-    const daysLeft = Math.max(0, Math.ceil(timeLeft / (24 * 60 * 60 * 1000)));
-    return { percentage, goalXlm, raisedXlm, contributors: campaignData.contributor_count, daysLeft };
-  }, []);
-
-  const fetchCampaigns = useCallback(async () => {
-    try {
-      setError(null);
-      const data = await getAllCampaigns();
-      setCampaigns(data);
-      setLastUpdated(Date.now());
-    } catch (err) {
-      console.error("Error fetching campaigns:", err);
-      setError("Failed to load campaigns");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const fetchCampaign = useCallback(async (id: number) => {
-    try {
-      setError(null);
-      const [campaignData, donationsData] = await Promise.all([
-        getCampaign(id),
-        getRecentDonations(id, 20),
-      ]);
-      setCampaign(campaignData);
-      setDonations(donationsData.sort((a, b) => Number(b.timestamp - a.timestamp)));
-      setProgress(calculateProgress(campaignData));
-      setLastUpdated(Date.now());
-    } catch (err) {
-      console.error("Error fetching campaign:", err);
-      setError("Failed to load campaign data");
-    } finally {
-      setLoading(false);
-    }
-  }, [calculateProgress]);
-
-  useEffect(() => {
-    fetchCampaigns();
-  }, [fetchCampaigns]);
-
-  return (
-    <CampaignContext.Provider
-      value={{
-        campaigns,
-        campaign,
-        donations,
-        progress,
-        loading,
-        error,
-        refresh: fetchCampaigns,
-        refreshCampaign: fetchCampaign,
-        lastUpdated,
-      }}
-    >
-      {children}
-    </CampaignContext.Provider>
-  );
-}
-
-export function useCampaign() {
-  const context = useContext(CampaignContext);
-  if (!context) {
-    throw new Error("useCampaign must be used within a CampaignProvider");
-  }
-  return context;
-}
-
 interface TransactionContextType {
   state: TransactionState;
   donate: (publicKey: string, campaignId: number, amount: bigint) => Promise<string>;
+  withdraw: (publicKey: string, campaignId: number) => Promise<string>;
+  refund: (publicKey: string, campaignId: number) => Promise<string>;
   reset: () => void;
 }
 
@@ -200,13 +98,15 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
     setState({ status: "idle" });
   }, []);
 
-  const donate = async (publicKey: string, campaignId: number, amount: bigint) => {
+  const execTx = async (
+    fn: () => Promise<{ signAndSend: () => Promise<unknown> }>,
+  ) => {
     setState({ status: "signing" });
     try {
-      const tx = await contractDonate(publicKey, campaignId, amount);
+      const tx = await fn();
       setState({ status: "submitting" });
-      const sent = await tx.signAndSend();
-      const hash = typeof sent === "string" ? sent : sent.hash || "";
+      const sent: any = await tx.signAndSend();
+      const hash = typeof sent === "string" ? sent : sent?.hash || "";
       setState({ status: "confirmed", hash, timestamp: Date.now() });
       return hash;
     } catch (err) {
@@ -216,8 +116,17 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const donate = async (publicKey: string, campaignId: number, amount: bigint) =>
+    execTx(() => contractDonate(publicKey, campaignId, amount));
+
+  const withdraw = async (publicKey: string, campaignId: number) =>
+    execTx(() => contractWithdraw(publicKey, campaignId));
+
+  const refundTx = async (publicKey: string, campaignId: number) =>
+    execTx(() => contractRefund(publicKey, campaignId, publicKey));
+
   return (
-    <TransactionContext.Provider value={{ state, donate, reset }}>
+    <TransactionContext.Provider value={{ state, donate, withdraw, refund: refundTx, reset }}>
       {children}
     </TransactionContext.Provider>
   );
@@ -295,8 +204,8 @@ export function useToast() {
 
 function ToastContainer({ toasts, onDismiss }: { toasts: ToastMessage[]; onDismiss: (id: string) => void }) {
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3 pointer-events-none">
-      {toasts.map(toast => (
+    <div className="pointer-events-none fixed bottom-6 right-4 z-50 flex max-w-sm flex-col gap-3 sm:right-6">
+      {toasts.map((toast) => (
         <Toast key={toast.id} toast={toast} onDismiss={onDismiss} />
       ))}
     </div>
@@ -306,7 +215,7 @@ function ToastContainer({ toasts, onDismiss }: { toasts: ToastMessage[]; onDismi
 function Toast({ toast, onDismiss }: { toast: ToastMessage; onDismiss: (id: string) => void }) {
   const icons = {
     success: (
-      <svg className="h-5 w-5 text-emerald-500" viewBox="0 0 20 20" fill="currentColor">
+      <svg className="h-5 w-5 text-emerald-600" viewBox="0 0 20 20" fill="currentColor">
         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
       </svg>
     ),
@@ -321,32 +230,33 @@ function Toast({ toast, onDismiss }: { toast: ToastMessage; onDismiss: (id: stri
       </svg>
     ),
     info: (
-      <svg className="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+      <svg className="h-5 w-5 text-brand-600" viewBox="0 0 20 20" fill="currentColor">
         <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
       </svg>
     ),
   };
 
-  const bgColors = {
-    success: "bg-emerald-50 border-emerald-200",
-    error: "bg-red-50 border-red-200",
-    warning: "bg-amber-50 border-amber-200",
-    info: "bg-blue-50 border-blue-200",
+  const tone = {
+    success: "border-emerald-200/80 bg-emerald-50/95",
+    error: "border-red-200/80 bg-red-50/95",
+    warning: "border-amber-200/80 bg-amber-50/95",
+    info: "border-brand-200/80 bg-brand-50/95",
   };
 
   return (
     <div
-      className={`pointer-events-auto flex items-start gap-3 rounded-xl border p-4 min-w-[300px] max-w-md shadow-lg animate-slide-in ${bgColors[toast.type]}`}
+      className={`toast-panel animate-slide-in ${tone[toast.type]}`}
       role="alert"
     >
-      <span className="flex-shrink-0 mt-0.5">{icons[toast.type]}</span>
-      <div className="flex-1">
-        <p className="text-sm font-semibold text-zinc-950">{toast.title}</p>
-        {toast.message && <p className="mt-1 text-sm text-zinc-600">{toast.message}</p>}
+      <span className="mt-0.5 flex-shrink-0">{icons[toast.type]}</span>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-ink">{toast.title}</p>
+        {toast.message && <p className="mt-1 text-sm text-ink-muted">{toast.message}</p>}
       </div>
       <button
+        type="button"
         onClick={() => onDismiss(toast.id)}
-        className="flex-shrink-0 text-xl leading-none text-zinc-400 hover:text-zinc-600"
+        className="flex-shrink-0 rounded-lg p-1 text-ink-faint transition-colors hover:bg-white/70 hover:text-ink-muted"
         aria-label="Dismiss"
       >
         ×

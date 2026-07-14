@@ -1,201 +1,112 @@
-import { motion } from "framer-motion";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
+import { ArrowLeft, Spinner, Wallet } from "@phosphor-icons/react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useWallet, useToast } from "../contexts/AppContext";
 import { createCampaign } from "../services/contract";
 import { xlmToStroops } from "../utils/format";
 
-const CATEGORIES = [
-  { value: "", label: "Select category (optional)" },
-  { value: "Technology", label: "Technology" },
-  { value: "Education", label: "Education" },
-  { value: "Healthcare", label: "Healthcare" },
-  { value: "Environment", label: "Environment" },
-  { value: "Open Source", label: "Open Source" },
-  { value: "Other", label: "Other" },
-];
-
 export default function CreateCampaign() {
   const navigate = useNavigate();
   const { address, connect } = useWallet();
   const toast = useToast();
+  const reduceMotion = useReducedMotion();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [goalAmount, setGoalAmount] = useState("");
   const [deadlineDate, setDeadlineDate] = useState("");
-  const [category, setCategory] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   if (!address) {
     return (
       <div className="flex min-h-[50vh] flex-col items-center justify-center py-20 text-center">
-        <p className="text-lg font-medium text-zinc-700">Connect your wallet</p>
-        <p className="mt-2 text-sm text-zinc-500">You need a Stellar wallet to create a campaign.</p>
-        <button
-          onClick={connect}
-          className="mt-6 rounded-full bg-zinc-950 px-6 py-3 text-sm font-medium text-white transition hover:bg-zinc-800"
-        >
-          Connect wallet
-        </button>
+        <div className="card-shell max-w-md">
+          <div className="card-shell__inner flex flex-col items-center px-8 py-10">
+            <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-black/[0.04] text-[#787774]"><Wallet size={20} /></span>
+            <p className="mt-5 text-lg font-bold tracking-tight text-[#111111]">Connect your wallet</p>
+            <p className="mt-2 text-sm text-[#787774]">You need to connect a wallet to create a campaign.</p>
+            <button type="button" onClick={connect} className="btn-primary mt-6"><Wallet size={16} />Connect wallet</button>
+          </div>
+        </div>
       </div>
     );
   }
 
+  const minDeadline = new Date();
+  minDeadline.setDate(minDeadline.getDate() + 1);
+  const minDeadlineStr = minDeadline.toISOString().split("T")[0];
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!title.trim()) { toast.error("Title required", "Enter a campaign title"); return; }
+    if (!description.trim()) { toast.error("Description required", "Enter a campaign description"); return; }
+    const goal = parseFloat(goalAmount);
+    if (isNaN(goal) || goal <= 0) { toast.error("Invalid goal", "Enter a valid funding goal in XLM"); return; }
+    if (!deadlineDate) { toast.error("Deadline required", "Select a campaign deadline"); return; }
+    const deadlineUnix = Math.floor(new Date(deadlineDate).getTime() / 1000);
 
-    if (!title.trim()) {
-      toast.error("Required", "Campaign title is required");
-      return;
-    }
-    if (!description.trim()) {
-      toast.error("Required", "Campaign description is required");
-      return;
-    }
-    const goal = Number(goalAmount);
-    if (!goalAmount || isNaN(goal) || goal <= 0) {
-      toast.error("Invalid goal", "Please enter a positive goal amount");
-      return;
-    }
-    if (!deadlineDate) {
-      toast.error("Required", "Please select a deadline");
-      return;
-    }
-
-    const deadlineMs = new Date(deadlineDate).getTime();
-    if (deadlineMs <= Date.now()) {
-      toast.error("Invalid deadline", "Deadline must be in the future");
-      return;
-    }
-
-    const deadlineSeconds = BigInt(Math.floor(deadlineMs / 1000));
-
+    setSubmitting(true);
     try {
-      setSubmitting(true);
-      toast.info("Creating campaign", "Please confirm the transaction in your wallet");
-
-      const tx = await createCampaign(
-        address,
-        title.trim(),
-        description.trim(),
-        xlmToStroops(goal),
-        deadlineSeconds,
-      );
-      const sent = await tx.signAndSend();
-      const campId = tx.result;
-
-      toast.success("Campaign created!", `Campaign #${campId} is now live`);
-      navigate(`/campaign/${campId}`);
-    } catch (err) {
-      console.error("Failed to create campaign:", err);
-      const msg = err instanceof Error ? err.message : "Transaction failed";
-      toast.error("Failed to create campaign", msg);
-    } finally {
-      setSubmitting(false);
-    }
+      const tx = await createCampaign(address, title.trim(), description.trim(), xlmToStroops(goal), BigInt(deadlineUnix));
+      const sent: any = await tx.signAndSend();
+      const newId = typeof sent === "number" ? sent : Number(sent);
+      toast.success("Campaign created", `Campaign #${newId} is now live`);
+      navigate(`/campaign/${newId}`);
+    } catch { toast.error("Failed to create campaign"); }
+    finally { setSubmitting(false); }
   };
 
-  const minDeadline = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-
   return (
-    <div className="flex-1 py-8 lg:py-12">
-      <button
-        onClick={() => navigate("/")}
-        className="mb-6 inline-flex items-center gap-1.5 text-sm text-zinc-500 transition hover:text-zinc-950"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Back to campaigns
-      </button>
+    <div className="flex-1 pb-20 pt-6 sm:pt-10">
+      <motion.div initial={reduceMotion ? false : { opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
+        <button type="button" onClick={() => navigate(-1)} className="mb-6 inline-flex items-center gap-1 text-xs font-semibold tracking-wide text-[#787774] transition-colors duration-200 hover:text-[#111111]">
+          <ArrowLeft size={12} />
+          Back
+        </button>
+      </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="mx-auto max-w-xl"
-      >
-        <p className="mb-2 text-sm font-medium uppercase tracking-[0.22em] text-zinc-500">New campaign</p>
-        <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">Create a campaign</h1>
-        <p className="mt-3 text-base leading-7 text-zinc-600">
-          Launch a crowdfunding campaign on Stellar. Set your goal, describe your project, and start receiving donations.
-        </p>
+      <motion.div initial={reduceMotion ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }} className="mx-auto max-w-2xl">
+        <div className="card-shell">
+          <div className="card-shell__inner">
+            <div className="mb-8">
+              <p className="section-kicker mb-2">Launch</p>
+              <h1 className="text-2xl font-bold tracking-tight text-[#111111] sm:text-3xl">Create a campaign</h1>
+              <p className="mt-2 text-sm text-[#787774]">Fill in the details below to launch your campaign on Stellar.</p>
+            </div>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-          <label className="block">
-            <span className="mb-2 block text-sm font-medium">Campaign title *</span>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Open-source tooling fund"
-              className="w-full rounded-2xl border border-zinc-300 px-4 py-3 outline-none transition focus:border-zinc-950"
-              required
-            />
-          </label>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <label htmlFor="title" className="field-label">Campaign title</label>
+                <input id="title" type="text" placeholder="e.g. Build an open-source trading bot" value={title} onChange={(e) => setTitle(e.target.value)} className="field" required />
+              </div>
 
-          <label className="block">
-            <span className="mb-2 block text-sm font-medium">Description *</span>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe your project, what you're building, and how funds will be used..."
-              rows={4}
-              className="w-full rounded-2xl border border-zinc-300 px-4 py-3 outline-none transition focus:border-zinc-950 resize-vertical"
-              required
-            />
-          </label>
+              <div>
+                <label htmlFor="description" className="field-label">Description</label>
+                <textarea id="description" rows={4} placeholder="Describe what you're building and why it matters" value={description} onChange={(e) => setDescription(e.target.value)} className="field resize-none" required />
+              </div>
 
-          <div className="grid gap-6 sm:grid-cols-2">
-            <label className="block">
-              <span className="mb-2 block text-sm font-medium">Goal amount (XLM) *</span>
-              <input
-                type="number"
-                step="any"
-                min="0.0000001"
-                value={goalAmount}
-                onChange={(e) => setGoalAmount(e.target.value)}
-                placeholder="e.g. 1000"
-                className="w-full rounded-2xl border border-zinc-300 px-4 py-3 outline-none transition focus:border-zinc-950"
-                required
-              />
-            </label>
+              <div className="grid gap-6 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="goal" className="field-label">Funding goal (XLM)</label>
+                  <input id="goal" type="number" min="0" step="0.1" placeholder="e.g. 1000" value={goalAmount} onChange={(e) => setGoalAmount(e.target.value)} className="field" required />
+                </div>
+                <div>
+                  <label htmlFor="deadline" className="field-label">Deadline</label>
+                  <input id="deadline" type="date" min={minDeadlineStr} value={deadlineDate} onChange={(e) => setDeadlineDate(e.target.value)} className="field" required />
+                </div>
+              </div>
 
-            <label className="block">
-              <span className="mb-2 block text-sm font-medium">Deadline *</span>
-              <input
-                type="date"
-                value={deadlineDate}
-                onChange={(e) => setDeadlineDate(e.target.value)}
-                min={minDeadline}
-                className="w-full rounded-2xl border border-zinc-300 px-4 py-3 outline-none transition focus:border-zinc-950"
-                required
-              />
-            </label>
+              <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:justify-end">
+                <button type="button" onClick={() => navigate("/")} className="btn-secondary px-6 py-3">Cancel</button>
+                <button type="submit" disabled={submitting} className="btn-primary px-8 py-3">
+                  {submitting ? <Spinner size={16} className="animate-spin" /> : null}
+                  {submitting ? "Launching..." : "Launch campaign"}
+                </button>
+              </div>
+            </form>
           </div>
-
-          <label className="block">
-            <span className="mb-2 block text-sm font-medium">Category</span>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full rounded-2xl border border-zinc-300 px-4 py-3 outline-none transition focus:border-zinc-950 bg-white"
-            >
-              {CATEGORIES.map((c) => (
-                <option key={c.value} value={c.value}>{c.label}</option>
-              ))}
-            </select>
-          </label>
-
-          <button
-            type="submit"
-            disabled={submitting}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-zinc-950 px-6 py-3.5 text-sm font-medium text-white transition hover:bg-zinc-800 disabled:opacity-50"
-          >
-            {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-            {submitting ? "Creating campaign..." : "Create campaign"}
-          </button>
-        </form>
+        </div>
       </motion.div>
     </div>
   );
