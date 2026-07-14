@@ -5,11 +5,22 @@ import {
   STELLAR_RPC_URL,
   signTransaction,
 } from "./wallet";
-import type { CampaignData, DonationRecord } from "../types";
+import type { CampaignData, CampaignStatus, DonationRecord } from "../types";
 
 export const CONTRACT_ID =
   import.meta.env.VITE_CONTRACT_ID ||
-  "CCYJOPGDQSZ2XVR4QCP67RAIFZRVDNXVYT2LRO2U4AJ2XL5D66M3PDYX";
+  "CCB63UK4GQPL7NOKZ3EHM5CDM74SSPYYJ4NGKP4M6Q2U7XPDHHBHVANC";
+
+export const TREASURY_CONTRACT_ID =
+  import.meta.env.VITE_TREASURY_CONTRACT_ID ||
+  "CAL7LQPOFPA4BB6WC2USJLWOOQSRXQKULA64TARKGTRPRB24EYX4F6LY";
+
+const STATUS_MAP: Record<number, CampaignStatus> = {
+  0: "Active",
+  1: "Successful",
+  2: "Failed",
+  3: "Closed",
+};
 
 function scvAddress(a: string): ReturnType<typeof nativeToScVal> {
   return Address.fromString(a).toScVal();
@@ -32,6 +43,14 @@ function scvString(s: string): ReturnType<typeof nativeToScVal> {
 }
 
 function parseCampaignData(m: Record<string, unknown>): CampaignData {
+  const statusVal = m.status;
+  let status: CampaignStatus = "Active";
+  if (typeof statusVal === "number") {
+    status = STATUS_MAP[statusVal] || "Active";
+  } else if (typeof statusVal === "string") {
+    status = statusVal as CampaignStatus;
+  }
+
   return {
     id: Number(m.id),
     owner: m.owner as string,
@@ -42,7 +61,7 @@ function parseCampaignData(m: Record<string, unknown>): CampaignData {
     contributor_count: Number(m.contributor_count),
     created_at: BigInt(m.created_at as number | bigint),
     deadline: BigInt(m.deadline as number | bigint),
-    active: Boolean(m.active),
+    status,
   };
 }
 
@@ -130,6 +149,17 @@ export async function getContributors(
   });
 }
 
+export async function getContributor(
+  campaignId: number,
+  contributor: string,
+): Promise<bigint> {
+  return readCall(
+    "get_contributor",
+    [scvU32(campaignId), scvAddress(contributor)],
+    (v) => BigInt(v as number | bigint),
+  );
+}
+
 export async function createCampaign(
   publicKey: string,
   name: string,
@@ -164,6 +194,31 @@ export async function donate(
   );
 }
 
+export async function withdrawFunds(
+  publicKey: string,
+  campaignId: number,
+): Promise<AssembledTransaction<void>> {
+  return writeCall(
+    "withdraw_funds",
+    [scvU32(campaignId)],
+    publicKey,
+    () => undefined,
+  );
+}
+
+export async function refund(
+  publicKey: string,
+  campaignId: number,
+  contributor: string,
+): Promise<AssembledTransaction<void>> {
+  return writeCall(
+    "refund",
+    [scvU32(campaignId), scvAddress(contributor)],
+    publicKey,
+    () => undefined,
+  );
+}
+
 export async function closeCampaign(
   publicKey: string,
   campaignId: number,
@@ -177,7 +232,13 @@ export async function closeCampaign(
 }
 
 export function createReadOnlyClient() {
-  return { getCampaign, getAllCampaigns, getRecentDonations, getContributors };
+  return {
+    getCampaign,
+    getAllCampaigns,
+    getRecentDonations,
+    getContributors,
+    getContributor,
+  };
 }
 
 export function createSigningClient(publicKey: string) {
@@ -190,6 +251,10 @@ export function createSigningClient(publicKey: string) {
     ) => createCampaign(publicKey, name, description, fundingGoal, deadline),
     donate: (campaignId: number, amount: bigint) =>
       donate(publicKey, campaignId, amount),
+    withdrawFunds: (campaignId: number) =>
+      withdrawFunds(publicKey, campaignId),
+    refund: (campaignId: number, contributor: string) =>
+      refund(publicKey, campaignId, contributor),
     closeCampaign: (campaignId: number) =>
       closeCampaign(publicKey, campaignId),
   };
