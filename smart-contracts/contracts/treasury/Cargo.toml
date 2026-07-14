@@ -1,5 +1,5 @@
 [package]
-name = "crowdfunding"
+name = "treasury"
 version = "0.1.0"
 edition = "2021"
 publish = false
@@ -13,4 +13,3 @@ soroban-sdk = { workspace = true }
 
 [dev-dependencies]
 soroban-sdk = { workspace = true, features = ["testutils"] }
-treasury = { path = "../treasury" }

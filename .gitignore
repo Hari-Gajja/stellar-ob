@@ -49,3 +49,4 @@ logs/
 # Misc
 *.tgz
 .cache/
+style-backup/
